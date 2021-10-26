@@ -27,10 +27,6 @@ public class SimpleUIEaseEffect
     /// イージングの種類
     /// </summary>
     public EaseValue.eEase    Ease = EaseValue.eEase.CubicOut;
-    /// <summary>
-    /// 使用する場合 true
-    /// </summary>
-    public bool               Used = true;
 }
 
 [RequireComponent(typeof(RectTransform))]
@@ -171,7 +167,6 @@ public class SimpleUIEase : MonoBehaviour
         {
             var compare = new SimpleUIEaseEffect();
             compare.Type = Effects[i].Type;
-            compare.Used = Effects[i].Used;
             compares.Add(compare);
         }
 
@@ -179,12 +174,11 @@ public class SimpleUIEase : MonoBehaviour
         {
             SimpleUIEaseEffect effect = Effects[i];
 
-            if (effect.Used == compares[i].Used && effect.Type == compares[i].Type)
+            if (effect.Type == compares[i].Type)
             {
                 continue;
             }
 
-            compares[i].Used = effect.Used;
             compares[i].Type = effect.Type;
 
             if (effect.Type == eType.MoveX)
@@ -447,11 +441,6 @@ public class SimpleUIEase : MonoBehaviour
     {
         foreach (SimpleUIEaseEffect effect in Effects)
         {
-            if (effect.Used == false)
-            {
-                continue;
-            }
-
             if (effect.Type == eType.Fade)
             {
                 group.alpha = EaseValue.Get(value, 1);

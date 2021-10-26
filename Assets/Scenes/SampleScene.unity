@@ -408,17 +408,14 @@ MonoBehaviour:
     Pos: 0
     Ratio: 0
     Ease: 0
-    Used: 1
   - Type: 1
     Pos: 275
     Ratio: -1.36
     Ease: 21
-    Used: 1
   - Type: 2
     Pos: -50
     Ratio: -2.5
     Ease: 24
-    Used: 1
   DelayTimeBeforeShow: 0.2
   DelayTimeBeforeHide: 0.1
   AutoActivate: 1
@@ -572,17 +569,14 @@ MonoBehaviour:
     Pos: 0
     Ratio: 0
     Ease: 0
-    Used: 1
   - Type: 1
     Pos: -300
     Ratio: 1.36
     Ease: 21
-    Used: 1
   - Type: 2
     Pos: -50
     Ratio: -2.5
     Ease: 24
-    Used: 1
   DelayTimeBeforeShow: 0.1
   DelayTimeBeforeHide: 0.2
   AutoActivate: 1
@@ -971,17 +965,18 @@ MonoBehaviour:
     Pos: 0
     Ratio: 0
     Ease: 0
-    Used: 1
   - Type: 1
     Pos: -800
     Ratio: 1.69
     Ease: 21
-    Used: 1
   - Type: 2
     Pos: 100
     Ratio: -2.5
     Ease: 24
-    Used: 1
+  - Type: 2
+    Pos: 100
+    Ratio: -2.5
+    Ease: 24
   DelayTimeBeforeShow: 0
   DelayTimeBeforeHide: 0.3
   AutoActivate: 1
@@ -1508,17 +1503,14 @@ MonoBehaviour:
     Pos: 0
     Ratio: 0
     Ease: 0
-    Used: 1
   - Type: 1
     Pos: 800
     Ratio: -1.69
     Ease: 21
-    Used: 1
   - Type: 2
     Pos: 100
     Ratio: -2.5
     Ease: 24
-    Used: 1
   DelayTimeBeforeShow: 0.3
   DelayTimeBeforeHide: 0
   AutoActivate: 1
