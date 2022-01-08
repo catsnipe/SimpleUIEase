@@ -337,6 +337,14 @@ public class SimpleUIEase : MonoBehaviour
     }
     
     /// <summary>
+    /// Effect 取得
+    /// </summary>
+    public List<SimpleUIEaseEffect> GetEffect()
+    {
+        return Effects;
+    }
+
+    /// <summary>
     /// キャッシュ登録
     /// </summary>
     void initCache()
@@ -457,25 +465,28 @@ public class SimpleUIEase : MonoBehaviour
             {
                 group.alpha = EaseValue.Get(value, 1);
             }
-            if (effect.Type == eType.MoveX)
+            if (effect.Ease != EaseValue.eEase.None)
             {
-                rectSetX(rectTrans, EaseValue.Get(value, 1, effect.Pos + rectGetWidth(rectTrans) * effect.Ratio, effect.Pos, effect.Ease));
-            }
-            if (effect.Type == eType.MoveY)
-            {
-                rectSetY(rectTrans, EaseValue.Get(value, 1, effect.Pos + rectGetHeight(rectTrans) * effect.Ratio, effect.Pos, effect.Ease));
-            }
-            if (effect.Type == eType.ScaleX)
-            {
-                rectSetScaleX(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
-            }
-            if (effect.Type == eType.ScaleY)
-            {
-                rectSetScaleY(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
-            }
-            if (effect.Type == eType.RotateZ)
-            {
-                rectSetRotateZ(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
+                if (effect.Type == eType.MoveX)
+                {
+                    rectSetX(rectTrans, EaseValue.Get(value, 1, effect.Pos + rectGetWidth(rectTrans) * effect.Ratio, effect.Pos, effect.Ease));
+                }
+                if (effect.Type == eType.MoveY)
+                {
+                    rectSetY(rectTrans, EaseValue.Get(value, 1, effect.Pos + rectGetHeight(rectTrans) * effect.Ratio, effect.Pos, effect.Ease));
+                }
+                if (effect.Type == eType.ScaleX)
+                {
+                    rectSetScaleX(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
+                }
+                if (effect.Type == eType.ScaleY)
+                {
+                    rectSetScaleY(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
+                }
+                if (effect.Type == eType.RotateZ)
+                {
+                    rectSetRotateZ(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
+                }
             }
         }
     }
@@ -485,7 +496,7 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public static float rectGetWidth(RectTransform self)
     {
-        return self.sizeDelta.x;
+        return self.rect.size.x;
     }
     
     /// <summary>
@@ -493,7 +504,7 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public static float rectGetHeight(RectTransform self)
     {
-        return self.sizeDelta.y;
+        return self.rect.size.y;
     }
 
     /// <summary>
