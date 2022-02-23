@@ -73,13 +73,13 @@ public class SimpleUIEase : MonoBehaviour
     List<SimpleUIEaseEffect> Effects = new List<SimpleUIEaseEffect>();
 
     [SerializeField, Space(10), Range(0, 10f), Tooltip("表示アニメーションが始まるまでのディレイタイムを指定します。")]
-    float             DelayTimeBeforeShow = 0;
+    public float      DelayTimeBeforeShow = 0;
     [SerializeField, Range(0, 10f), Tooltip("非表示アニメーションが始まるまでのディレイタイムを指定します。")]
-    float             DelayTimeBeforeHide = 0;
+    public float      DelayTimeBeforeHide = 0;
     [SerializeField, Space(10), Tooltip("Show / Hide に合わせて自動的に SetActive() を実行します。")]
-    bool              AutoActivate = false;
+    public bool       AutoActivate = false;
     [SerializeField, Tooltip("Show / Hide に合わせて自動的に CanvasGroup の入力可否を設定します。")]
-    bool              AutoBlockRaycasts = true;
+    public bool       AutoBlockRaycasts = true;
 
     [SerializeField, Header("Debug"), Range(0, 1), Tooltip("アニメーションの確認を行います。0 が非表示、1 が表示。")]
     float             Value = 1;
@@ -339,7 +339,7 @@ public class SimpleUIEase : MonoBehaviour
     /// <summary>
     /// Effect 取得
     /// </summary>
-    public List<SimpleUIEaseEffect> GetEffect()
+    public List<SimpleUIEaseEffect> GetEffects()
     {
         return Effects;
     }
