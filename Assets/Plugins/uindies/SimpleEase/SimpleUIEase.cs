@@ -150,14 +150,23 @@ public class SimpleUIEase : MonoBehaviour
         initCache();
     }
     
+#if UNITY_EDITOR
     /// <summary>
     /// on validate
     /// </summary>
     void OnValidate()
     {
+        // Warning 回避
+        UnityEditor.EditorApplication.delayCall += _OnValidate;
+    }
+ 
+    void _OnValidate()
+    {
+        UnityEditor.EditorApplication.delayCall -= _OnValidate;
+        if(this == null) return;
+
         initCache();
 
-#if UNITY_EDITOR
         // OnValidate 前と今回の値を比較し、Used の変更やタイプ変更があった場合は rectTransform の値を取り直す
         if (compares == null)
         {
@@ -207,10 +216,11 @@ public class SimpleUIEase : MonoBehaviour
                 Debug.Log($"[RotateZ] position reset.");
             }
         }
-#endif
+
         transitionUpdate(rectTransform, canvasGroup, Value);
     }
-    
+#endif
+
     /// <summary>
     /// Value を強制的に変更
     /// </summary>
@@ -336,6 +346,21 @@ public class SimpleUIEase : MonoBehaviour
         co_fadeout = StartCoroutine(fadeout());
     }
     
+    /// <summary>
+    /// 指定された型の Effect 取得
+    /// </summary>
+    public SimpleUIEaseEffect GetEffect(eType type)
+    {
+        foreach (var effect in Effects)
+        {
+            if (effect.Type == type)
+            {
+                return effect;
+            }
+        }
+        return null;
+    }
+
     /// <summary>
     /// Effect 取得
     /// </summary>
