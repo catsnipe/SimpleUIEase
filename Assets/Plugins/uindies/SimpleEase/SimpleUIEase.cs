@@ -80,6 +80,8 @@ public class SimpleUIEase : MonoBehaviour
     public bool       AutoActivate = false;
     [SerializeField, Tooltip("Show / Hide に合わせて自動的に CanvasGroup の入力可否を設定します。")]
     public bool       AutoBlockRaycasts = true;
+    [SerializeField, Tooltip("アニメーションをループさせる場合、チェックします。")]
+    public bool       Loop = false;
 
     [SerializeField, Header("Debug"), Range(0, 1), Tooltip("アニメーションの確認を行います。0 が非表示、1 が表示。")]
     float             Value = 1;
@@ -91,6 +93,8 @@ public class SimpleUIEase : MonoBehaviour
 
     Action            OnFadein1  = null;
     Action            OnFadeout1 = null;
+
+    bool              isEasing;
 
     RectTransform     rectTransform;
     CanvasGroup       canvasGroup;
@@ -222,6 +226,14 @@ public class SimpleUIEase : MonoBehaviour
 #endif
 
     /// <summary>
+    /// Value を取得
+    /// </summary>
+    public float GetValue()
+    {
+        return Value;
+    }
+
+    /// <summary>
     /// Value を強制的に変更
     /// </summary>
     /// <param name="value">0:hide～1:show</param>
@@ -271,6 +283,8 @@ public class SimpleUIEase : MonoBehaviour
 
         Value = value;
         transitionUpdate(rectTransform, canvasGroup, Value);
+
+        isEasing = false;
     }
 
     /// <summary>
@@ -335,17 +349,34 @@ public class SimpleUIEase : MonoBehaviour
             canvasGroup.blocksRaycasts = false;
         }
 
+        OnFadeout1 = fadeoutEndFunc;
+
         if (gameObject.activeInHierarchy == false)
         {
             SetValue(0);
             return;
         }
 
-        OnFadeout1 = fadeoutEndFunc;
         stopCoroutine();
         co_fadeout = StartCoroutine(fadeout());
     }
-    
+
+    /// <summary>
+    /// アニメーション停止
+    /// </summary>
+    public void Stop()
+    {
+        stopCoroutine();
+    }
+
+    /// <summary>
+    /// アニメーション中であれば true
+    /// </summary>
+    public bool CheckEasing()
+    {
+        return isEasing;
+    }
+
     /// <summary>
     /// 指定された型の Effect 取得
     /// </summary>
@@ -406,40 +437,54 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     IEnumerator fadein()
     {
-        yield return new WaitForSeconds(DelayTimeBeforeShow);
+        isEasing = true;
 
-        float time     = Time.time;
-        float startVal = Value;
+        yield return new WaitForSeconds(DelayTimeBeforeShow);
 
         while (true)
         {
-            float value = Mathf.Clamp01((Time.time - time) / TotalTime);
-            Value = Mathf.Clamp01(startVal + (1 - startVal) * value);
+            float time     = Time.time;
+            float startVal = Value;
 
-            transitionUpdate(rectTransform, canvasGroup, Value);
-            
-            if (AutoBlockRaycasts == true)
+            while (true)
             {
-                // 完全表示より少し前にレイキャストはONにしておく（ユーザビリティを考えて）
-                if (value >= 0.75f)
+                float value = Mathf.Clamp01((Time.time - time) / TotalTime);
+                Value = Mathf.Clamp01(startVal + (1 - startVal) * value);
+
+                transitionUpdate(rectTransform, canvasGroup, Value);
+            
+                if (AutoBlockRaycasts == true)
                 {
-                    canvasGroup.blocksRaycasts = true;
+                    // 完全表示より少し前にレイキャストはONにしておく（ユーザビリティを考えて）
+                    if (value >= 0.75f)
+                    {
+                        canvasGroup.blocksRaycasts = true;
+                    }
                 }
+
+                if (value >= 1)
+                {
+                    break;
+                }
+                yield return null;
             }
 
-            if (value >= 1)
+            if (Loop == true)
+            {
+                Value = 0;
+            }
+            else
             {
                 break;
             }
-            yield return null;
         }
 
         OnFadein?.Invoke();
 
         OnFadein1?.Invoke();
-        OnFadein1 = null;
-
-        co_fadein = null;
+        OnFadein1   = null;
+        co_fadein   = null;
+        isEasing = false;
     }
 
     /// <summary>
@@ -447,23 +492,37 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     IEnumerator fadeout()
     {
-        yield return new WaitForSeconds(DelayTimeBeforeHide);
+        isEasing = true;
 
-        float time     = Time.time;
-        float startVal = Value;
+        yield return new WaitForSeconds(DelayTimeBeforeHide);
 
         while (true)
         {
-            float value = Mathf.Clamp01((Time.time - time) / TotalTime);
-            Value = Mathf.Clamp01(startVal + (0 - startVal) * value);
+            float time     = Time.time;
+            float startVal = Value;
 
-            transitionUpdate(rectTransform, canvasGroup, Value);
+            while (true)
+            {
+                float value = Mathf.Clamp01((Time.time - time) / TotalTime);
+                Value = Mathf.Clamp01(startVal + (0 - startVal) * value);
+
+                transitionUpdate(rectTransform, canvasGroup, Value);
             
-            if (value >= 1)
+                if (value >= 1)
+                {
+                    break;
+                }
+                yield return null;
+            }
+
+            if (Loop == true)
+            {
+                Value = 1;
+            }
+            else
             {
                 break;
             }
-            yield return null;
         }
 
         if (AutoActivate == true)
@@ -474,9 +533,9 @@ public class SimpleUIEase : MonoBehaviour
         OnFadeout?.Invoke();
 
         OnFadeout1?.Invoke();
-        OnFadeout1 = null;
-
-        co_fadeout = null;
+        OnFadeout1  = null;
+        co_fadeout  = null;
+        isEasing = false;
     }
 
     /// <summary>
