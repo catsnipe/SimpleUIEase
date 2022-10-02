@@ -248,36 +248,12 @@ public class SimpleUIEase : MonoBehaviour
 
         if (value == 1 || co_fadein  != null)
         {
-            OnFadein?.Invoke();
-
-            OnFadein1?.Invoke();
-            OnFadein1 = null;
-
-            if (AutoActivate == true)
-            {
-                this.SetActive(true);
-            }
-            if (AutoBlockRaycasts == true)
-            {
-                canvasGroup.blocksRaycasts = true;
-            }
+            onFadeinInvokeBySetValue();
         }
         else
         if (value == 0 || co_fadeout != null)
         {
-            OnFadeout?.Invoke();
-
-            OnFadeout1?.Invoke();
-            OnFadeout1 = null;
-
-            if (AutoActivate == true)
-            {
-                this.SetActive(false);
-            }
-            if (AutoBlockRaycasts == true)
-            {
-                canvasGroup.blocksRaycasts = false;
-            }
+            onFadeoutInvokeBySetValue();
         }
         stopCoroutine();
 
@@ -298,11 +274,6 @@ public class SimpleUIEase : MonoBehaviour
             co_fadeout = null;
         }
 
-        if (Value == 1 || co_fadein != null)
-        {
-            return;
-        }
-
         initCache();
 
         if (AutoActivate == true)
@@ -315,13 +286,20 @@ public class SimpleUIEase : MonoBehaviour
             canvasGroup.blocksRaycasts = false;
         }
 
+        OnFadein1 = fadeinEndFunc;
+
+        if (Value == 1 || co_fadein != null)
+        {
+            onFadeinInvokeBySetValue();
+            return;
+        }
+
         if (gameObject.activeInHierarchy == false)
         {
             SetValue(1);
             return;
         }
 
-        OnFadein1 = fadeinEndFunc;
         stopCoroutine();
         co_fadein = StartCoroutine(fadein());
     }
@@ -337,11 +315,6 @@ public class SimpleUIEase : MonoBehaviour
             co_fadein = null;
         }
 
-        if (Value == 0 || co_fadeout != null)
-        {
-            return;
-        }
-
         initCache();
 
         if (AutoBlockRaycasts == true)
@@ -350,6 +323,12 @@ public class SimpleUIEase : MonoBehaviour
         }
 
         OnFadeout1 = fadeoutEndFunc;
+
+        if (Value == 0 || co_fadeout != null)
+        {
+            onFadeoutInvokeBySetValue();
+            return;
+        }
 
         if (gameObject.activeInHierarchy == false)
         {
@@ -479,10 +458,8 @@ public class SimpleUIEase : MonoBehaviour
             }
         }
 
-        OnFadein?.Invoke();
+        onFadeinInvoke();
 
-        OnFadein1?.Invoke();
-        OnFadein1   = null;
         co_fadein   = null;
         isEasing = false;
     }
@@ -530,12 +507,54 @@ public class SimpleUIEase : MonoBehaviour
             this.SetActive(false);
         }
 
+        onFadeoutInvoke();
+
+        co_fadeout  = null;
+        isEasing = false;
+    }
+
+    void onFadeinInvoke()
+    {
+        OnFadein?.Invoke();
+
+        OnFadein1?.Invoke();
+        OnFadein1   = null;
+    }
+
+    void onFadeoutInvoke()
+    {
         OnFadeout?.Invoke();
 
         OnFadeout1?.Invoke();
         OnFadeout1  = null;
-        co_fadeout  = null;
-        isEasing = false;
+    }
+
+    void onFadeinInvokeBySetValue()
+    {
+        onFadeinInvoke();
+
+        if (AutoActivate == true)
+        {
+            this.SetActive(true);
+        }
+        if (AutoBlockRaycasts == true)
+        {
+            canvasGroup.blocksRaycasts = true;
+        }
+    }
+
+    void onFadeoutInvokeBySetValue()
+    {
+        onFadeoutInvoke();
+
+        if (AutoActivate == true)
+        {
+            this.SetActive(false);
+        }
+        if (AutoBlockRaycasts == true)
+        {
+            canvasGroup.blocksRaycasts = false;
+        }
     }
 
     /// <summary>
