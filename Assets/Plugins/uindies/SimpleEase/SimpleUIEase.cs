@@ -61,13 +61,21 @@ public class SimpleUIEase : MonoBehaviour
         /// </summary>
         ScaleY,
         /// <summary>
-        /// 回転
+        /// 回転Z
         /// </summary>
         RotateZ,
+        /// <summary>
+        /// 回転Y
+        /// </summary>
+        RotateY,
+        /// <summary>
+        /// 回転X
+        /// </summary>
+        RotateX,
     }
 
     [SerializeField, Range(0.05f, 10f), Tooltip("IN、または OUT するまでの時間を設定します。")]
-    public float     TotalTime = 0.3f;
+    public float      TotalTime = 0.3f;
 
     [SerializeField, Space(10)]
     List<SimpleUIEaseEffect> Effects = new List<SimpleUIEaseEffect>();
@@ -90,6 +98,9 @@ public class SimpleUIEase : MonoBehaviour
     public UnityEvent OnFadein   = null;
     [SerializeField]
     public UnityEvent OnFadeout  = null;
+
+    public Action<SimpleUIEase, float>
+                      OnDebugFading = null;
 
     Action            OnFadein1  = null;
     Action            OnFadeout1 = null;
@@ -126,7 +137,10 @@ public class SimpleUIEase : MonoBehaviour
         {
             if (AutoActivate == true)
             {
-                this.SetActive(true);
+                if (this.gameObject.activeSelf != true)
+                {
+                    this.SetActive(true);
+                }
             }
             if (AutoBlockRaycasts == true)
             {
@@ -137,7 +151,10 @@ public class SimpleUIEase : MonoBehaviour
         {
             if (AutoActivate == true)
             {
-                this.SetActive(false);
+                if (this.gameObject.activeSelf != false)
+                {
+                    this.SetActive(false);
+                }
             }
             if (AutoBlockRaycasts == true)
             {
@@ -219,6 +236,16 @@ public class SimpleUIEase : MonoBehaviour
                 effect.Pos = rectTransform.GetRotateZ();
                 Debug.Log($"[RotateZ] position reset.");
             }
+            if (effect.Type == eType.RotateY)
+            {
+                effect.Pos = rectTransform.GetRotateY();
+                Debug.Log($"[RotateY] position reset.");
+            }
+            if (effect.Type == eType.RotateX)
+            {
+                effect.Pos = rectTransform.GetRotateX();
+                Debug.Log($"[RotateX] position reset.");
+            }
         }
 
         transitionUpdate(rectTransform, canvasGroup, Value);
@@ -239,6 +266,8 @@ public class SimpleUIEase : MonoBehaviour
     /// <param name="value">0:hide～1:show</param>
     public void SetValue(float value)
     {
+        stopCoroutine();
+
         if (Value == value)
         {
             return;
@@ -255,12 +284,53 @@ public class SimpleUIEase : MonoBehaviour
         {
             onFadeoutInvokeBySetValue();
         }
-        stopCoroutine();
 
         Value = value;
         transitionUpdate(rectTransform, canvasGroup, Value);
 
         isEasing = false;
+    }
+
+    ///// <summary>
+    ///// 表示. yield return で同期実行
+    ///// </summary>
+    //public IEnumerator ShowCoroutine()
+    //{
+    //    Show();
+
+    //    while (co_fadein != null)
+    //    {
+    //        yield return null;
+    //    }
+    //}
+
+    ///// <summary>
+    ///// 非表示. yield return で同期実行
+    ///// </summary>
+    //public IEnumerator HideCoroutine()
+    //{
+    //    Hide();
+
+    //    while (co_fadeout != null)
+    //    {
+    //        yield return null;
+    //    }
+    //}
+
+    /// <summary>
+    /// 最初から表示
+    /// </summary>
+    public void StartShow(Action fadeinEndFunc = null)
+    {
+        if (co_fadeout != null)
+        {
+            StopCoroutine(co_fadeout);
+            co_fadeout = null;
+        }
+        OnFadeout1 = null;
+        
+        SetValue(0);
+        Show(fadeinEndFunc);
     }
 
     /// <summary>
@@ -278,7 +348,10 @@ public class SimpleUIEase : MonoBehaviour
 
         if (AutoActivate == true)
         {
-            this.SetActive(true);
+            if (this.gameObject.activeSelf != true)
+            {
+                this.SetActive(true);
+            }
         }
         if (AutoBlockRaycasts == true)
         {
@@ -288,7 +361,8 @@ public class SimpleUIEase : MonoBehaviour
 
         OnFadein1 = fadeinEndFunc;
 
-        if (Value == 1 || co_fadein != null)
+        if (Value == 1)
+//        if (Value == 1 || co_fadein != null)
         {
             onFadeinInvokeBySetValue();
             return;
@@ -324,7 +398,8 @@ public class SimpleUIEase : MonoBehaviour
 
         OnFadeout1 = fadeoutEndFunc;
 
-        if (Value == 0 || co_fadeout != null)
+        if (Value == 0)
+//        if (Value == 0 || co_fadeout != null)
         {
             onFadeoutInvokeBySetValue();
             return;
@@ -354,6 +429,14 @@ public class SimpleUIEase : MonoBehaviour
     public bool CheckEasing()
     {
         return isEasing;
+    }
+
+    /// <summary>
+    /// Ease 配下にある GameObject 入力の禁止(false)・許可(true)
+    /// </summary>
+    public void SetBlockRaycasts(bool blockRaycasts)
+    {
+        canvasGroup.blocksRaycasts = blockRaycasts;
     }
 
     /// <summary>
@@ -435,7 +518,8 @@ public class SimpleUIEase : MonoBehaviour
                 if (AutoBlockRaycasts == true)
                 {
                     // 完全表示より少し前にレイキャストはONにしておく（ユーザビリティを考えて）
-                    if (value >= 0.75f)
+                    if (value >= 0.01f)
+//                    if (value >= 0.75f)
                     {
                         canvasGroup.blocksRaycasts = true;
                     }
@@ -562,6 +646,8 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     void transitionUpdate(RectTransform rectTrans, CanvasGroup group, float value)
     {
+        OnDebugFading?.Invoke(this, value);
+
         foreach (SimpleUIEaseEffect effect in Effects)
         {
             if (effect.Type == eType.Fade)
@@ -585,6 +671,14 @@ public class SimpleUIEase : MonoBehaviour
                 if (effect.Type == eType.ScaleY)
                 {
                     rectSetScaleY(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
+                }
+                if (effect.Type == eType.RotateX)
+                {
+                    rectSetRotateX(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
+                }
+                if (effect.Type == eType.RotateY)
+                {
+                    rectSetRotateY(rectTrans, EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease));
                 }
                 if (effect.Type == eType.RotateZ)
                 {
@@ -651,7 +745,27 @@ public class SimpleUIEase : MonoBehaviour
     }
 
     /// <summary>
-    /// 回転を設定します
+    /// X回転を設定します
+    /// </summary>
+    static void rectSetRotateX(RectTransform self, float x)
+    {
+        Vector3 trans = self.gameObject.transform.localEulerAngles;
+        trans.x = x;
+        self.gameObject.transform.localEulerAngles = trans;
+    }
+
+    /// <summary>
+    /// Y回転を設定します
+    /// </summary>
+    static void rectSetRotateY(RectTransform self, float y)
+    {
+        Vector3 trans = self.gameObject.transform.localEulerAngles;
+        trans.y = y;
+        self.gameObject.transform.localEulerAngles = trans;
+    }
+
+    /// <summary>
+    /// Z回転を設定します
     /// </summary>
     static void rectSetRotateZ(RectTransform self, float z)
     {
