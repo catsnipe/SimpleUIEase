@@ -110,8 +110,8 @@ public class SimpleUIEase : MonoBehaviour
     RectTransform     rectTransform;
     CanvasGroup       canvasGroup;
 
-    Coroutine         co_fadein;
-    Coroutine         co_fadeout;
+    CoroutineInfo     co_fadein  = new CoroutineInfo();
+    CoroutineInfo     co_fadeout = new CoroutineInfo();
 
 #if UNITY_EDITOR
     List<SimpleUIEaseEffect> compares;
@@ -125,7 +125,6 @@ public class SimpleUIEase : MonoBehaviour
         initCache();
 
         transitionUpdate(rectTransform, canvasGroup, Value);
-
     }
     
     /// <summary>
@@ -133,7 +132,7 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     void Start()
     {
-        if (Value > 0 || co_fadein != null)
+        if (Value > 0 || co_fadein.CoroutineExists() == true)
         {
             if (AutoActivate == true)
             {
@@ -161,6 +160,12 @@ public class SimpleUIEase : MonoBehaviour
                 canvasGroup.blocksRaycasts = false;
             }
         }
+    }
+
+    void OnEnable()
+    {
+        this.ResumeSingleCoroutine(co_fadein);
+        this.ResumeSingleCoroutine(co_fadeout);
     }
 
     /// <summary>
@@ -275,12 +280,12 @@ public class SimpleUIEase : MonoBehaviour
 
         initCache();
 
-        if (value == 1 || co_fadein  != null)
+        if (value == 1 || co_fadein.CoroutineExists() == true)
         {
             onFadeinInvokeBySetValue();
         }
         else
-        if (value == 0 || co_fadeout != null)
+        if (value == 0 || co_fadeout.CoroutineExists() == true)
         {
             onFadeoutInvokeBySetValue();
         }
@@ -291,41 +296,14 @@ public class SimpleUIEase : MonoBehaviour
         isEasing = false;
     }
 
-    ///// <summary>
-    ///// 表示. yield return で同期実行
-    ///// </summary>
-    //public IEnumerator ShowCoroutine()
-    //{
-    //    Show();
-
-    //    while (co_fadein != null)
-    //    {
-    //        yield return null;
-    //    }
-    //}
-
-    ///// <summary>
-    ///// 非表示. yield return で同期実行
-    ///// </summary>
-    //public IEnumerator HideCoroutine()
-    //{
-    //    Hide();
-
-    //    while (co_fadeout != null)
-    //    {
-    //        yield return null;
-    //    }
-    //}
-
     /// <summary>
     /// 最初から表示
     /// </summary>
     public void StartShow(Action fadeinEndFunc = null)
     {
-        if (co_fadeout != null)
+        if (co_fadeout.CoroutineExists() == true)
         {
-            StopCoroutine(co_fadeout);
-            co_fadeout = null;
+            this.StopSingleCoroutine(ref co_fadeout);
         }
         OnFadeout1 = null;
         
@@ -338,10 +316,9 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public void Show(Action fadeinEndFunc = null)
     {
-        if (co_fadeout != null)
+        if (co_fadeout.CoroutineExists() == true)
         {
-            StopCoroutine(co_fadeout);
-            co_fadeout = null;
+            this.StopSingleCoroutine(ref co_fadeout);
         }
 
         initCache();
@@ -362,7 +339,6 @@ public class SimpleUIEase : MonoBehaviour
         OnFadein1 = fadeinEndFunc;
 
         if (Value == 1)
-//        if (Value == 1 || co_fadein != null)
         {
             onFadeinInvokeBySetValue();
             return;
@@ -375,7 +351,7 @@ public class SimpleUIEase : MonoBehaviour
         }
 
         stopCoroutine();
-        co_fadein = StartCoroutine(fadein());
+        this.StartSingleCoroutine(ref co_fadein, fadein());
     }
 
     /// <summary>
@@ -383,10 +359,9 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public void Hide(Action fadeoutEndFunc = null)
     {
-        if (co_fadein != null)
+        if (co_fadein.CoroutineExists() == true)
         {
-            StopCoroutine(co_fadein);
-            co_fadein = null;
+            this.StopSingleCoroutine(ref co_fadein);
         }
 
         initCache();
@@ -399,7 +374,6 @@ public class SimpleUIEase : MonoBehaviour
         OnFadeout1 = fadeoutEndFunc;
 
         if (Value == 0)
-//        if (Value == 0 || co_fadeout != null)
         {
             onFadeoutInvokeBySetValue();
             return;
@@ -412,7 +386,7 @@ public class SimpleUIEase : MonoBehaviour
         }
 
         stopCoroutine();
-        co_fadeout = StartCoroutine(fadeout());
+        this.StartSingleCoroutine(ref co_fadeout, fadeout());
     }
 
     /// <summary>
@@ -482,15 +456,13 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     void stopCoroutine()
     {
-        if (co_fadein != null)
+        if (co_fadein.CoroutineExists() == true)
         {
-            StopCoroutine(co_fadein);
-            co_fadein = null;
+            this.StopSingleCoroutine(ref co_fadein);
         }
-        if (co_fadeout != null)
+        if (co_fadeout.CoroutineExists() == true)
         {
-            StopCoroutine(co_fadeout);
-            co_fadeout = null;
+            this.StopSingleCoroutine(ref co_fadeout);
         }
     }
 
@@ -544,8 +516,9 @@ public class SimpleUIEase : MonoBehaviour
 
         onFadeinInvoke();
 
-        co_fadein   = null;
         isEasing = false;
+
+        co_fadein.Clear();
     }
 
     /// <summary>
@@ -593,8 +566,9 @@ public class SimpleUIEase : MonoBehaviour
 
         onFadeoutInvoke();
 
-        co_fadeout  = null;
         isEasing = false;
+
+        co_fadeout.Clear();
     }
 
     void onFadeinInvoke()
@@ -652,7 +626,14 @@ public class SimpleUIEase : MonoBehaviour
         {
             if (effect.Type == eType.Fade)
             {
-                group.alpha = EaseValue.Get(value, 1);
+                if (effect.Ratio == 0)
+                {
+                    group.alpha = EaseValue.Get(value, 1);
+                }
+                else
+                {
+                    group.alpha = EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease);
+                }
             }
             if (effect.Ease != EaseValue.eEase.None)
             {
