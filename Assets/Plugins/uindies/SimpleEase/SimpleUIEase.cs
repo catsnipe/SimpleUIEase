@@ -301,10 +301,8 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public void StartShow(Action fadeinEndFunc = null)
     {
-        if (co_fadeout.CoroutineExists() == true)
-        {
-            this.StopSingleCoroutine(ref co_fadeout);
-        }
+        stopCoroutineFadeout();
+
         OnFadeout1 = null;
         
         SetValue(0);
@@ -316,10 +314,7 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public void Show(Action fadeinEndFunc = null)
     {
-        if (co_fadeout.CoroutineExists() == true)
-        {
-            this.StopSingleCoroutine(ref co_fadeout);
-        }
+        stopCoroutineFadeout();
 
         initCache();
 
@@ -359,10 +354,7 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public void Hide(Action fadeoutEndFunc = null)
     {
-        if (co_fadein.CoroutineExists() == true)
-        {
-            this.StopSingleCoroutine(ref co_fadein);
-        }
+        stopCoroutineFadein();
 
         initCache();
 
@@ -456,13 +448,25 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     void stopCoroutine()
     {
+        stopCoroutineFadein();
+        stopCoroutineFadeout();
+    }
+
+    void stopCoroutineFadein()
+    {
         if (co_fadein.CoroutineExists() == true)
         {
             this.StopSingleCoroutine(ref co_fadein);
+            isEasing = false;
         }
+    }
+
+    void stopCoroutineFadeout()
+    {
         if (co_fadeout.CoroutineExists() == true)
         {
             this.StopSingleCoroutine(ref co_fadeout);
+            isEasing = false;
         }
     }
 
