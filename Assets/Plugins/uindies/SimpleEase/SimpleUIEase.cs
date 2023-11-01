@@ -253,6 +253,19 @@ public class SimpleUIEase : MonoBehaviour
             }
         }
 
+        if (AutoBlockRaycasts == true)
+        {
+            if (Value == 1)
+            {
+                canvasGroup.blocksRaycasts = true;
+            }
+            else
+            {
+                canvasGroup.blocksRaycasts = false;
+            }
+        }
+
+
         transitionUpdate(rectTransform, canvasGroup, Value);
     }
 #endif
@@ -333,7 +346,7 @@ public class SimpleUIEase : MonoBehaviour
 
         OnFadein1 = fadeinEndFunc;
 
-        if (Value == 1)
+        if (Value == 1 && Loop == false)
         {
             onFadeinInvokeBySetValue();
             return;
@@ -342,6 +355,11 @@ public class SimpleUIEase : MonoBehaviour
         if (gameObject.activeInHierarchy == false)
         {
             SetValue(1);
+            return;
+        }
+
+        if (co_fadein.CoroutineExists() == true)
+        {
             return;
         }
 
@@ -365,7 +383,7 @@ public class SimpleUIEase : MonoBehaviour
 
         OnFadeout1 = fadeoutEndFunc;
 
-        if (Value == 0)
+        if (Value == 0 && Loop == false)
         {
             onFadeoutInvokeBySetValue();
             return;
@@ -374,6 +392,11 @@ public class SimpleUIEase : MonoBehaviour
         if (gameObject.activeInHierarchy == false)
         {
             SetValue(0);
+            return;
+        }
+
+        if (co_fadeout.CoroutineExists() == true)
+        {
             return;
         }
 
