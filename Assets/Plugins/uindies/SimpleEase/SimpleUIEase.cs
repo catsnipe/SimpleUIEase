@@ -253,19 +253,6 @@ public class SimpleUIEase : MonoBehaviour
             }
         }
 
-        if (AutoBlockRaycasts == true)
-        {
-            if (Value == 1)
-            {
-                canvasGroup.blocksRaycasts = true;
-            }
-            else
-            {
-                canvasGroup.blocksRaycasts = false;
-            }
-        }
-
-
         transitionUpdate(rectTransform, canvasGroup, Value);
     }
 #endif
@@ -346,7 +333,7 @@ public class SimpleUIEase : MonoBehaviour
 
         OnFadein1 = fadeinEndFunc;
 
-        if (Value == 1 && Loop == false)
+        if (Value == 1)
         {
             onFadeinInvokeBySetValue();
             return;
@@ -355,11 +342,6 @@ public class SimpleUIEase : MonoBehaviour
         if (gameObject.activeInHierarchy == false)
         {
             SetValue(1);
-            return;
-        }
-
-        if (co_fadein.CoroutineExists() == true)
-        {
             return;
         }
 
@@ -383,7 +365,7 @@ public class SimpleUIEase : MonoBehaviour
 
         OnFadeout1 = fadeoutEndFunc;
 
-        if (Value == 0 && Loop == false)
+        if (Value == 0)
         {
             onFadeoutInvokeBySetValue();
             return;
@@ -392,11 +374,6 @@ public class SimpleUIEase : MonoBehaviour
         if (gameObject.activeInHierarchy == false)
         {
             SetValue(0);
-            return;
-        }
-
-        if (co_fadeout.CoroutineExists() == true)
-        {
             return;
         }
 
@@ -517,7 +494,7 @@ public class SimpleUIEase : MonoBehaviour
                 if (AutoBlockRaycasts == true)
                 {
                     // 完全表示より少し前にレイキャストはONにしておく（ユーザビリティを考えて）
-                    if (value >= 0.01f)
+                    if (value >= 0.5f)
 //                    if (value >= 0.75f)
                     {
                         canvasGroup.blocksRaycasts = true;
