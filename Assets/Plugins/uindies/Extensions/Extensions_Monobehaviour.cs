@@ -55,6 +55,10 @@ public static class MonoBehaviourExtension
     /// <param name="routine">コルーチン</param>
     public static void StartSingleCoroutine(this MonoBehaviour self, ref CoroutineInfo coInfo, IEnumerator routine)
     {
+        if (coInfo == null)
+        {
+            coInfo = new CoroutineInfo();
+        }
         if (coInfo != null && coInfo.Routine != null)
         {
             self.StopCoroutine(coInfo.Routine);
