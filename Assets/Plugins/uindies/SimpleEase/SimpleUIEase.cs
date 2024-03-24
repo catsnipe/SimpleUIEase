@@ -406,6 +406,14 @@ public class SimpleUIEase : MonoBehaviour
     }
 
     /// <summary>
+    /// Ease 配下にある GameObject 入力の禁止(false)・許可(true) 状態を取得
+    /// </summary>
+    public bool GetBlockRaycasts()
+    {
+        return canvasGroup.blocksRaycasts;
+    }
+
+    /// <summary>
     /// 指定された型の Effect 取得
     /// </summary>
     public SimpleUIEaseEffect GetEffect(eType type)
