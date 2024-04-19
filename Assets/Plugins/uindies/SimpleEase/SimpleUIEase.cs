@@ -90,6 +90,8 @@ public class SimpleUIEase : MonoBehaviour
     public bool       AutoBlockRaycasts = true;
     [SerializeField, Tooltip("アニメーションをループさせる場合、チェックします。")]
     public bool       Loop = false;
+    [SerializeField, Tooltip("Raycast が On になるα値。")]
+    public float      RaycastOnAlpha = 0.5f;
 
     [SerializeField, Header("Debug"), Range(0, 1), Tooltip("アニメーションの確認を行います。0 が非表示、1 が表示。")]
     float             Value = 1;
@@ -271,7 +273,17 @@ public class SimpleUIEase : MonoBehaviour
     /// <param name="value">0:hide～1:show</param>
     public void SetValue(float value)
     {
+        //★Value = value の上では？
         stopCoroutine();
+
+        if (value < 0)
+        {
+            value = 0;
+        }
+        if (value > 1)
+        {
+            value = 1;
+        }
 
         if (Value == value)
         {
@@ -328,7 +340,14 @@ public class SimpleUIEase : MonoBehaviour
         if (AutoBlockRaycasts == true)
         {
             // まだ許可は出さない
-            canvasGroup.blocksRaycasts = false;
+            if (RaycastOnAlpha == 0)
+            {
+                canvasGroup.blocksRaycasts = true;
+            }
+            else
+            {
+                canvasGroup.blocksRaycasts = false;
+            }
         }
 
         OnFadein1 = fadeinEndFunc;
@@ -343,6 +362,11 @@ public class SimpleUIEase : MonoBehaviour
         {
             SetValue(1);
             return;
+        }
+
+        if (float.IsNaN(Value) == true)
+        {
+            Value = 0;
         }
 
         stopCoroutine();
@@ -377,6 +401,11 @@ public class SimpleUIEase : MonoBehaviour
             return;
         }
 
+        if (float.IsNaN(Value) == true)
+        {
+            Value = 1;
+        }
+
         stopCoroutine();
         this.StartSingleCoroutine(ref co_fadeout, fadeout());
     }
@@ -395,6 +424,22 @@ public class SimpleUIEase : MonoBehaviour
     public bool CheckEasing()
     {
         return isEasing;
+    }
+
+    /// <summary>
+    /// Fadein 中であれば true
+    /// </summary>
+    public bool CheckFadein()
+    {
+        return co_fadein.CoroutineExists();
+    }
+
+    /// <summary>
+    /// Fadeout 中であれば true
+    /// </summary>
+    public bool CheckFadeout()
+    {
+        return co_fadeout.CoroutineExists();
     }
 
     /// <summary>
@@ -494,16 +539,33 @@ public class SimpleUIEase : MonoBehaviour
 
             while (true)
             {
-                float value = Mathf.Clamp01((Time.time - time) / TotalTime);
-                Value = Mathf.Clamp01(startVal + (1 - startVal) * value);
+                float value = (Time.time - time) / TotalTime;
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                if (value > 1)
+                {
+                    value = 1;
+                }
+                float value2 = startVal + (1 - startVal) * value;
+                if (value2 < 0)
+                {
+                    value2 = 0;
+                }
+                if (value2 > 1)
+                {
+                    value2 = 1;
+                }
+
+                Value = value2;
 
                 transitionUpdate(rectTransform, canvasGroup, Value);
             
                 if (AutoBlockRaycasts == true)
                 {
                     // 完全表示より少し前にレイキャストはONにしておく（ユーザビリティを考えて）
-                    if (value >= 0.5f)
-//                    if (value >= 0.75f)
+                    if (value >= RaycastOnAlpha)
                     {
                         canvasGroup.blocksRaycasts = true;
                     }
@@ -549,8 +611,26 @@ public class SimpleUIEase : MonoBehaviour
 
             while (true)
             {
-                float value = Mathf.Clamp01((Time.time - time) / TotalTime);
-                Value = Mathf.Clamp01(startVal + (0 - startVal) * value);
+                float value = (Time.time - time) / TotalTime;
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                if (value > 1)
+                {
+                    value = 1;
+                }
+                float value2 = startVal + (0 - startVal) * value;
+                if (value2 < 0)
+                {
+                    value2 = 0;
+                }
+                if (value2 > 1)
+                {
+                    value2 = 1;
+                }
+
+                Value = value2;
 
                 transitionUpdate(rectTransform, canvasGroup, Value);
             
