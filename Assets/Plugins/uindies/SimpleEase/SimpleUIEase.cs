@@ -1,4 +1,26 @@
-﻿using System.Collections;
+﻿// Copyright (c) catsnipe
+// Released under the MIT license
+
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the 
+// "Software"), to deal in the Software without restriction, including 
+// without limitation the rights to use, copy, modify, merge, publish, 
+// distribute, sublicense, and/or sell copies of the Software, and to 
+// permit persons to whom the Software is furnished to do so, subject to 
+// the following conditions:
+   
+// The above copyright notice and this permission notice shall be 
+// included in all copies or substantial portions of the Software.
+   
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
@@ -27,6 +49,14 @@ public class SimpleUIEaseEffect
     /// イージングの種類
     /// </summary>
     public EaseValue.eEase    Ease = EaseValue.eEase.CubicOut;
+    /// <summary>
+    /// 識別子タグ
+    /// </summary>
+    public string             Tag;
+    /// <summary>
+    /// Custom 選択時、コールされるメソッド
+    /// </summary>
+    public UnityEvent<float>  OnUpdate;
 }
 
 [RequireComponent(typeof(RectTransform))]
@@ -72,6 +102,10 @@ public class SimpleUIEase : MonoBehaviour
         /// 回転X
         /// </summary>
         RotateX,
+        /// <summary>
+        /// カスタム
+        /// </summary>
+        Custom,
     }
 
     [SerializeField, Range(0.05f, 10f), Tooltip("IN、または OUT するまでの時間を設定します。")]
@@ -91,7 +125,7 @@ public class SimpleUIEase : MonoBehaviour
     [SerializeField, Tooltip("アニメーションをループさせる場合、チェックします。")]
     public bool       Loop = false;
     [SerializeField, Tooltip("Raycast が On になるα値。")]
-    public float      RaycastOnAlpha = 0.5f;
+    public float      RaycastOnValue = 0.5f;
 
     [SerializeField, Header("Debug"), Range(0, 1), Tooltip("アニメーションの確認を行います。0 が非表示、1 が表示。")]
     float             Value = 1;
@@ -168,14 +202,6 @@ public class SimpleUIEase : MonoBehaviour
     {
         this.ResumeSingleCoroutine(co_fadein);
         this.ResumeSingleCoroutine(co_fadeout);
-    }
-
-    /// <summary>
-    /// アタッチする瞬間、RectTransform で設定された値を自動的に入れる
-    /// </summary>
-    void Reset()
-    {
-        initCache();
     }
     
 #if UNITY_EDITOR
@@ -340,7 +366,7 @@ public class SimpleUIEase : MonoBehaviour
         if (AutoBlockRaycasts == true)
         {
             // まだ許可は出さない
-            if (RaycastOnAlpha == 0)
+            if (RaycastOnValue == 0)
             {
                 canvasGroup.blocksRaycasts = true;
             }
@@ -415,6 +441,8 @@ public class SimpleUIEase : MonoBehaviour
     /// </summary>
     public void Stop()
     {
+        OnFadein1  = null;
+        OnFadeout1 = null;
         stopCoroutine();
     }
 
@@ -443,6 +471,17 @@ public class SimpleUIEase : MonoBehaviour
     }
 
     /// <summary>
+    /// アニメーション終了待ち
+    /// </summary>
+    public IEnumerator WaitSync()
+    {
+        while (isEasing == true)
+        {
+            yield return null;
+        }
+    }
+
+    /// <summary>
     /// Ease 配下にある GameObject 入力の禁止(false)・許可(true)
     /// </summary>
     public void SetBlockRaycasts(bool blockRaycasts)
@@ -466,6 +505,21 @@ public class SimpleUIEase : MonoBehaviour
         foreach (var effect in Effects)
         {
             if (effect.Type == type)
+            {
+                return effect;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 指定されたタグの Effect 取得
+    /// </summary>
+    public SimpleUIEaseEffect GetEffectByTag(string tag)
+    {
+        foreach (var effect in Effects)
+        {
+            if (effect.Tag == tag)
             {
                 return effect;
             }
@@ -565,7 +619,7 @@ public class SimpleUIEase : MonoBehaviour
                 if (AutoBlockRaycasts == true)
                 {
                     // 完全表示より少し前にレイキャストはONにしておく（ユーザビリティを考えて）
-                    if (value >= RaycastOnAlpha)
+                    if (value >= RaycastOnValue)
                     {
                         canvasGroup.blocksRaycasts = true;
                     }
@@ -727,6 +781,12 @@ public class SimpleUIEase : MonoBehaviour
                     group.alpha = EaseValue.Get(value, 1, effect.Pos + effect.Ratio, effect.Pos, effect.Ease);
                 }
             }
+            else
+            if (effect.Type == eType.Custom)
+            {
+                effect.OnUpdate?.Invoke(value);
+            }
+            else
             if (effect.Ease != EaseValue.eEase.None)
             {
                 if (effect.Type == eType.MoveX)
